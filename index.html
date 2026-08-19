@@ -1,135 +1,142 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
   <script>
-    const _0x1a2b=["Premio 1","Premio 2","Premio 3","Premio 4","Premio 5","Premio 6","Premio 7","Premio 8","Premio 9","Premio 10"];
-    const _0x3c4d=["#f39c12","#e74c3c","#9b59b6","#3498db","#2ecc71","#1abc9c","#d35400","#c0392b","#8e44ad","#16a085"];
+    // Cambio directo de título
+    document.addEventListener("DOMContentLoaded", () => {
+      const tituloElem = document.querySelector("h1");
+      if (tituloElem) {
+        tituloElem.innerText = "Gira la rueda de la fortuna de Laura";
+      }
+    });
 
-    let canvas,_0x5e6f;
-    const _0x7a8b=_0x1a2b.length;
-    const _0x9c0d=(2*Math.PI)/_0x7a8b;
-    const _0x1e2f=360/_0x7a8b;
+    const _0x1a2b = ["Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5", "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"];
+    const _0x3c4d = ["#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71", "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"];
 
-    let _0x3a4b=0;
-    let _0x5c6d=false;
+    let canvas, _0x5e6f;
+    const _0x7a8b = _0x1a2b.length;
+    const _0x9c0d = (2 * Math.PI) / _0x7a8b;
+    const _0x1e2f = 360 / _0x7a8b;
 
-    function inicializarRueda(){
-      canvas=document.getElementById("canvasRueda");
-      if(!canvas)return;
-      _0x5e6f=canvas.getContext("2d");
+    let _0x3a4b = 0;
+    let _0x5c6d = false;
+
+    function inicializarRueda() {
+      canvas = document.getElementById("canvasRueda");
+      if (!canvas) return;
+      _0x5e6f = canvas.getContext("2d");
       _0x7c8d();
     }
 
-    function _0x7c8d(){
-      if(!_0x5e6f)return;
-      const _0x1122=canvas.width/2;
-      const _0x3344=canvas.height/2;
-      const _0x5566=canvas.width/2;
+    function _0x7c8d() {
+      if (!_0x5e6f) return;
+      const _0x1122 = canvas.width / 2;
+      const _0x3344 = canvas.height / 2;
+      const _0x5566 = canvas.width / 2;
 
-      _0x5e6f.clearRect(0,0,canvas.width,canvas.height);
+      _0x5e6f.clearRect(0, 0, canvas.width, canvas.height);
 
-      for(let i=0;i<_0x7a8b;i++){
-        const _0x7788=i*_0x9c0d;
-        const _0x9900=_0x7788+_0x9c0d;
+      for (let i = 0; i < _0x7a8b; i++) {
+        const _0x7788 = i * _0x9c0d;
+        const _0x9900 = _0x7788 + _0x9c0d;
 
         _0x5e6f.beginPath();
-        _0x5e6f.moveTo(_0x1122,_0x3344);
-        _0x5e6f.arc(_0x1122,_0x3344,_0x5566,_0x7788,_0x9900);
-        _0x5e6f.fillStyle=_0x3c4d[i%_0x3c4d.length];
+        _0x5e6f.moveTo(_0x1122, _0x3344);
+        _0x5e6f.arc(_0x1122, _0x3344, _0x5566, _0x7788, _0x9900);
+        _0x5e6f.fillStyle = _0x3c4d[i % _0x3c4d.length];
         _0x5e6f.fill();
-        _0x5e6f.lineWidth=2;
-        _0x5e6f.strokeStyle="#ffffff";
+        _0x5e6f.lineWidth = 2;
+        _0x5e6f.strokeStyle = "#ffffff";
         _0x5e6f.stroke();
 
         _0x5e6f.save();
-        _0x5e6f.translate(_0x1122,_0x3344);
-        _0x5e6f.rotate(_0x7788+_0x9c0d/2);
-        _0x5e6f.textAlign="right";
-        _0x5e6f.fillStyle="#ffffff";
-        _0x5e6f.font="bold 13px Arial";
-        _0x5e6f.fillText(_0x1a2b[i],_0x5566-15,4);
+        _0x5e6f.translate(_0x1122, _0x3344);
+        _0x5e6f.rotate(_0x7788 + _0x9c0d / 2);
+        _0x5e6f.textAlign = "right";
+        _0x5e6f.fillStyle = "#ffffff";
+        _0x5e6f.font = "bold 13px Arial";
+        _0x5e6f.fillText(_0x1a2b[i], _0x5566 - 15, 4);
         _0x5e6f.restore();
       }
     }
 
-    function girarRueda(){
-      if(_0x5c6d)return;
-      _0x5c6d=true;
+    function girarRueda() {
+      if (_0x5c6d) return;
+      _0x5c6d = true;
 
-      document.getElementById("btnGirar").disabled=true;
-      document.getElementById("resultado-container").style.display="none";
-      document.getElementById("accion-container").style.display="none";
+      document.getElementById("btnGirar").disabled = true;
+      document.getElementById("resultado-container").style.display = "none";
+      document.getElementById("accion-container").style.display = "none";
 
-      // Elección calculada sin exponer listas
-      let _0xaa11=Math.floor(Math.random()*(_0x7a8b-1));
-      if(_0xaa11>=4)_0xaa11++;
+      let _0xaa11 = Math.floor(Math.random() * (_0x7a8b - 1));
+      if (_0xaa11 >= 4) _0xaa11++;
 
-      const _0xbb22=(_0xaa11===3||_0xaa11===5);
-      const _0xcc33=Math.random()<0.35;
-      const _0xdd44=_0xbb22&&_0xcc33;
+      const _0xbb22 = (_0xaa11 === 3 || _0xaa11 === 5);
+      const _0xcc33 = Math.random() < 0.35;
+      const _0xdd44 = _0xbb22 && _0xcc33;
 
-      const _0xee55=4+Math.random()*(_0x1e2f-8);
-      const _0xff66=(360-(_0xaa11*_0x1e2f)-_0xee55+270)%360;
+      const _0xee55 = 4 + Math.random() * (_0x1e2f - 8);
+      const _0xff66 = (360 - (_0xaa11 * _0x1e2f) - _0xee55 + 270) % 360;
 
-      const _0x11aa=_0x3a4b%360;
-      let _0x22bb=(_0xff66-_0x11aa+360)%360;
-      const _0x33cc=(5*360)+_0x22bb;
+      const _0x11aa = _0x3a4b % 360;
+      let _0x22bb = (_0xff66 - _0x11aa + 360) % 360;
+      const _0x33cc = (5 * 360) + _0x22bb;
 
-      if(_0xdd44){
-        canvas.style.transition="transform 5s cubic-bezier(0.2, 0.95, 0.25, 1.12)";
-      }else{
-        canvas.style.transition="transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)";
+      if (_0xdd44) {
+        canvas.style.transition = "transform 5s cubic-bezier(0.2, 0.95, 0.25, 1.12)";
+      } else {
+        canvas.style.transition = "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)";
       }
 
-      _0x3a4b+=_0x33cc;
-      canvas.style.transform=`rotate(${_0x3a4b}deg)`;
+      _0x3a4b += _0x33cc;
+      canvas.style.transform = `rotate(${_0x3a4b}deg)`;
 
-      const _0x44dd=_0xdd44?5000:4000;
+      const _0x44dd = _0xdd44 ? 5000 : 4000;
 
-      setTimeout(()=>{
-        _0x5c6d=false;
-        document.getElementById("btnGirar").disabled=false;
+      setTimeout(() => {
+        _0x5c6d = false;
+        document.getElementById("btnGirar").disabled = false;
         mostrarResultado(_0x1a2b[_0xaa11]);
-      },_0x44dd);
+      }, _0x44dd);
     }
 
-    function mostrarResultado(_0x55ee){
-      const _0x66ff=_0x55ee.toLowerCase();
-      document.getElementById("textoResultado").innerText=`¡Obtuviste el ${_0x66ff}!`;
-      document.getElementById("resultado-container").style.display="block";
-      document.getElementById("accion-container").style.display="block";
+    function mostrarResultado(_0x55ee) {
+      const _0x66ff = _0x55ee.toLowerCase();
+      document.getElementById("textoResultado").innerText = `¡Obtuviste el ${_0x66ff}!`;
+      document.getElementById("resultado-container").style.display = "block";
+      document.getElementById("accion-container").style.display = "block";
     }
 
-    async function capturarYCompartir(){
-      const _0x77aa=document.getElementById("captura-area");
+    async function capturarYCompartir() {
+      const _0x77aa = document.getElementById("captura-area");
 
-      if(typeof html2canvas==="undefined"){
+      if (typeof html2canvas === "undefined") {
         alert("La función de captura se está inicializando, intenta nuevamente en un momento.");
         return;
       }
 
-      try{
-        const _0x88bb=await html2canvas(_0x77aa,{useCORS:true,allowTaint:true});
-        _0x88bb.toBlob(async(_0x99cc)=>{
-          if(!_0x99cc)return;
-          const _0x00dd=new File([_0x99cc],"resultado_rueda.png",{type:"image/png"});
+      try {
+        const _0x88bb = await html2canvas(_0x77aa, { useCORS: true, allowTaint: true });
+        _0x88bb.toBlob(async (_0x99cc) => {
+          if (!_0x99cc) return;
+          const _0x00dd = new File([_0x99cc], "resultado_rueda.png", { type: "image/png" });
 
-          if(navigator.canShare&&navigator.canShare({files:[_0x00dd]})){
-            await navigator.share({files:[_0x00dd],title:"Mi Premio",text:"¡Mira lo que me tocó en la rueda!"});
-          }else{
-            const _0x11ee=document.createElement("a");
-            _0x11ee.href=URL.createObjectURL(_0x99cc);
-            _0x11ee.download="resultado_rueda.png";
+          if (navigator.canShare && navigator.canShare({ files: [_0x00dd] })) {
+            await navigator.share({ files: [_0x00dd], title: "Mi Premio", text: "¡Mira lo que me tocó en la rueda!" });
+          } else {
+            const _0x11ee = document.createElement("a");
+            _0x11ee.href = URL.createObjectURL(_0x99cc);
+            _0x11ee.download = "resultado_rueda.png";
             _0x11ee.click();
           }
-        },"image/png");
-      }catch(_0x22ff){
-        console.error("Error:",_0x22ff);
+        }, "image/png");
+      } catch (_0x22ff) {
+        console.error("Error:", _0x22ff);
       }
     }
 
-    if(document.readyState==="loading"){
-      document.addEventListener("DOMContentLoaded",inicializarRueda);
-    }else{
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", inicializarRueda);
+    } else {
       inicializarRueda();
     }
   </script>
