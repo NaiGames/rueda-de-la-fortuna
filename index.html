@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rueda de la Fortuna</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px 10px;
+      background-color: #f4f4f9;
+    }
+
+    #captura-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    h1 {
+      margin: 0 0 15px 0;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .rueda-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 10px auto;
+    }
+
+    .flecha {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 25px solid #e74c3c;
+      z-index: 10;
+    }
+
+    canvas {
+      display: block;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .btn-girar {
+      margin-top: 25px;
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #27ae60;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-girar:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    #resultado-container {
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+      background: #ffffff;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    #textoResultado {
+      margin: 0;
+      color: #2c3e50;
+      font-size: 20px;
+    }
+
+    #accion-container {
+      display: none;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .btn-compartir {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: #25d366;
+      color: #ffffff;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .btn-compartir svg {
+      width: 20px;
+      height: 20px;
+      fill: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="captura-area">
+    <h1>¡Gira la Rueda!</h1>
+    <div class="rueda-container">
+      <div class="flecha"></div>
+      <canvas id="canvasRueda" width="320" height="320"></canvas>
+    </div>
+    <div id="resultado-container">
+      <h2 id="textoResultado"></h2>
+    </div>
+  </div>
+
+  <button id="btnGirar" class="btn-girar" onclick="girarRueda()">GIRAR</button>
+
+  <div id="accion-container">
+    <button class="btn-compartir" onclick="capturarYCompartir()">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m8 3a5 5 0 0 0-5 5a5 5 0 0 0 5 5a5 5 0 0 0 5-5a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3a3 3 0 0 1-3 3a3 3 0 0 1-3-3a3 3 0 0 1 3-3Z"/>
+      </svg>
+      Sacale una foto y compártelo por WhatsApp
+    </button>
+  </div>
+
+  <!-- Carga diferida de scripts para no bloquear el WebView de WhatsApp -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
+  <script>
+    const opciones = [
+      "Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5",
+      "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"
+    ];
+
+    const colores = [
+      "#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71",
+      "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"
+    ];
+
+    let canvas, ctx;
+    const totalOpciones = opciones.length;
+    const anguloPorSlice = (2 * Math.PI) / totalOpciones;
+    const gradosPorSlice = 360 / totalOpciones;
+
+    let anguloAcumulado = 0;
+    let girando = false;
+
+    function inicializarRueda() {
+      canvas = document.getElementById("canvasRueda");
+      if (!canvas) return;
+      ctx = canvas.getContext("2d");
+      dibujarRueda();
+    }
+
+    function dibujarRueda() {
+      if (!ctx) return;
+      const centroX = canvas.width / 2;
+      const centroY = canvas.height / 2;
+      const radio = canvas.width / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < totalOpciones; i++) {
+        const inicioAngulo = i * anguloPorSlice;
+        const finAngulo = inicioAngulo + anguloPorSlice;
+
+        ctx.beginPath();
+        ctx.moveTo(centroX, centroY);
+        ctx.arc(centroX, centroY, radio, inicioAngulo, finAngulo);
+        ctx.fillStyle = colores[i % colores.length];
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(centroX, centroY);
+        ctx.rotate(inicioAngulo + anguloPorSlice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px Arial";
+        ctx.fillText(opciones[i], radio - 15, 4);
+        ctx.restore();
+      }
+    }
+
+    function girarRueda() {
+      if (girando) return;
+      girando = true;
+
+      document.getElementById("btnGirar").disabled = true;
+      document.getElementById("resultado-container").style.display = "none";
+      document.getElementById("accion-container").style.display = "none";
+
+      const indicesPermitidos = [0, 1, 2, 3, 5, 6, 7, 8, 9];
+      const indiceGanador = indicesPermitidos[Math.floor(Math.random() * indicesPermitidos.length)];
+
+      const esVecino = (indiceGanador === 3 || indiceGanador === 5);
+      const probabilidadEfecto = Math.random() < 0.35;
+      const activarSuspense = esVecino && probabilidadEfecto;
+
+      const offsetDentroSlice = 4 + Math.random() * (gradosPorSlice - 8);
+      const anguloObjetivo = (360 - (indiceGanador * gradosPorSlice) - offsetDentroSlice + 270) % 360;
+
+      const anguloActualNorm = anguloAcumulado % 360;
+      let deltaAngulo = (anguloObjetivo - anguloActualNorm + 360) % 360;
+      const rotacionTotal = (5 * 360) + deltaAngulo;
+
+      if (activarSuspense) {
+        canvas.style.transition = "transform 5s cubic-bezier(0.2, 0.95, 0.25, 1.12)";
+      } else {
+        canvas.style.transition = "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)";
+      }
+
+      anguloAcumulado += rotacionTotal;
+      canvas.style.transform = `rotate(${anguloAcumulado}deg)`;
+
+      const tiempoEspera = activarSuspense ? 5000 : 4000;
+
+      setTimeout(() => {
+        girando = false;
+        document.getElementById("btnGirar").disabled = false;
+        mostrarResultado(opciones[indiceGanador]);
+      }, tiempoEspera);
+    }
+
+    function mostrarResultado(resultado) {
+      const textoFormateado = resultado.toLowerCase();
+      document.getElementById("textoResultado").innerText = `¡Obtuviste el ${textoFormateado}!`;
+      document.getElementById("resultado-container").style.display = "block";
+      document.getElementById("accion-container").style.display = "block";
+    }
+
+    async function capturarYCompartir() {
+      const areaCaptura = document.getElementById("captura-area");
+
+      if (typeof html2canvas === "undefined") {
+        alert("La función de captura se está inicializando, intenta nuevamente en un momento.");
+        return;
+      }
+
+      try {
+        const canvasCaptura = await html2canvas(areaCaptura, { useCORS: true, allowTaint: true });
+        
+        canvasCaptura.toBlob(async (blob) => {
+          if (!blob) return;
+          const archivo = new File([blob], "resultado_rueda.png", { type: "image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            await navigator.share({
+              files: [archivo],
+              title: "Mi Premio",
+              text: "¡Mira lo que me tocó en la rueda!"
+            });
+          } else {
+            const enlaceDescarga = document.createElement("a");
+            enlaceDescarga.href = URL.createObjectURL(blob);
+            enlaceDescarga.download = "resultado_rueda.png";
+            enlaceDescarga.click();
+          }
+        }, "image/png");
+
+      } catch (error) {
+        console.error("Error al capturar o compartir:", error);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", inicializarRueda);
+    } else {
+      inicializarRueda();
+    }
+  </script>
+</body>
+</html>
