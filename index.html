@@ -31,9 +31,8 @@
 
     h1 {
       margin: 0 0 15px 0;
-      font-size: 22px;
+      font-size: 28px;
       text-align: center;
-      color: #2c3e50;
     }
 
     .rueda-container {
@@ -133,7 +132,7 @@
 <body>
 
   <div id="captura-area">
-    <h1>Gira la rueda de la fortuna de Laura</h1>
+    <h1>¡Gira la Rueda!</h1>
     <div class="rueda-container">
       <div class="flecha"></div>
       <canvas id="canvasRueda" width="320" height="320"></canvas>
@@ -154,108 +153,116 @@
     </button>
   </div>
 
+  <!-- Carga diferida de scripts para no bloquear el WebView de WhatsApp -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
   <script>
-    const _0x1a2b = ["Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5", "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"];
-    const _0x3c4d = ["#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71", "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"];
+    const opciones = [
+      "Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5",
+      "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"
+    ];
 
-    let canvas, _0x5e6f;
-    const _0x7a8b = _0x1a2b.length;
-    const _0x9c0d = (2 * Math.PI) / _0x7a8b;
-    const _0x1e2f = 360 / _0x7a8b;
+    const colores = [
+      "#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71",
+      "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"
+    ];
 
-    let _0x3a4b = 0;
-    let _0x5c6d = false;
+    let canvas, ctx;
+    const totalOpciones = opciones.length;
+    const anguloPorSlice = (2 * Math.PI) / totalOpciones;
+    const gradosPorSlice = 360 / totalOpciones;
+
+    let anguloAcumulado = 0;
+    let girando = false;
 
     function inicializarRueda() {
       canvas = document.getElementById("canvasRueda");
       if (!canvas) return;
-      _0x5e6f = canvas.getContext("2d");
-      _0x7c8d();
+      ctx = canvas.getContext("2d");
+      dibujarRueda();
     }
 
-    function _0x7c8d() {
-      if (!_0x5e6f) return;
-      const _0x1122 = canvas.width / 2;
-      const _0x3344 = canvas.height / 2;
-      const _0x5566 = canvas.width / 2;
+    function dibujarRueda() {
+      if (!ctx) return;
+      const centroX = canvas.width / 2;
+      const centroY = canvas.height / 2;
+      const radio = canvas.width / 2;
 
-      _0x5e6f.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (let i = 0; i < _0x7a8b; i++) {
-        const _0x7788 = i * _0x9c0d;
-        const _0x9900 = _0x7788 + _0x9c0d;
+      for (let i = 0; i < totalOpciones; i++) {
+        const inicioAngulo = i * anguloPorSlice;
+        const finAngulo = inicioAngulo + anguloPorSlice;
 
-        _0x5e6f.beginPath();
-        _0x5e6f.moveTo(_0x1122, _0x3344);
-        _0x5e6f.arc(_0x1122, _0x3344, _0x5566, _0x7788, _0x9900);
-        _0x5e6f.fillStyle = _0x3c4d[i % _0x3c4d.length];
-        _0x5e6f.fill();
-        _0x5e6f.lineWidth = 2;
-        _0x5e6f.strokeStyle = "#ffffff";
-        _0x5e6f.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centroX, centroY);
+        ctx.arc(centroX, centroY, radio, inicioAngulo, finAngulo);
+        ctx.fillStyle = colores[i % colores.length];
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
 
-        _0x5e6f.save();
-        _0x5e6f.translate(_0x1122, _0x3344);
-        _0x5e6f.rotate(_0x7788 + _0x9c0d / 2);
-        _0x5e6f.textAlign = "right";
-        _0x5e6f.fillStyle = "#ffffff";
-        _0x5e6f.font = "bold 13px Arial";
-        _0x5e6f.fillText(_0x1a2b[i], _0x5566 - 15, 4);
-        _0x5e6f.restore();
+        ctx.save();
+        ctx.translate(centroX, centroY);
+        ctx.rotate(inicioAngulo + anguloPorSlice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px Arial";
+        ctx.fillText(opciones[i], radio - 15, 4);
+        ctx.restore();
       }
     }
 
     function girarRueda() {
-      if (_0x5c6d) return;
-      _0x5c6d = true;
+      if (girando) return;
+      girando = true;
 
       document.getElementById("btnGirar").disabled = true;
       document.getElementById("resultado-container").style.display = "none";
       document.getElementById("accion-container").style.display = "none";
 
-      let _0xaa11 = Math.floor(Math.random() * (_0x7a8b - 1));
-      if (_0xaa11 >= 4) _0xaa11++;
+      const indicesPermitidos = [0, 1, 2, 3, 5, 6, 7, 8, 9];
+      const indiceGanador = indicesPermitidos[Math.floor(Math.random() * indicesPermitidos.length)];
 
-      const _0xbb22 = (_0xaa11 === 3 || _0xaa11 === 5);
-      const _0xcc33 = Math.random() < 0.35;
-      const _0xdd44 = _0xbb22 && _0xcc33;
+      const esVecino = (indiceGanador === 3 || indiceGanador === 5);
+      const probabilidadEfecto = Math.random() < 0.35;
+      const activarSuspense = esVecino && probabilidadEfecto;
 
-      const _0xee55 = 4 + Math.random() * (_0x1e2f - 8);
-      const _0xff66 = (360 - (_0xaa11 * _0x1e2f) - _0xee55 + 270) % 360;
+      const offsetDentroSlice = 4 + Math.random() * (gradosPorSlice - 8);
+      const anguloObjetivo = (360 - (indiceGanador * gradosPorSlice) - offsetDentroSlice + 270) % 360;
 
-      const _0x11aa = _0x3a4b % 360;
-      let _0x22bb = (_0xff66 - _0x11aa + 360) % 360;
-      const _0x33cc = (5 * 360) + _0x22bb;
+      const anguloActualNorm = anguloAcumulado % 360;
+      let deltaAngulo = (anguloObjetivo - anguloActualNorm + 360) % 360;
+      const rotacionTotal = (5 * 360) + deltaAngulo;
 
-      if (_0xdd44) {
+      if (activarSuspense) {
         canvas.style.transition = "transform 5s cubic-bezier(0.2, 0.95, 0.25, 1.12)";
       } else {
         canvas.style.transition = "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)";
       }
 
-      _0x3a4b += _0x33cc;
-      canvas.style.transform = `rotate(${_0x3a4b}deg)`;
+      anguloAcumulado += rotacionTotal;
+      canvas.style.transform = `rotate(${anguloAcumulado}deg)`;
 
-      const _0x44dd = _0xdd44 ? 5000 : 4000;
+      const tiempoEspera = activarSuspense ? 5000 : 4000;
 
       setTimeout(() => {
-        _0x5c6d = false;
+        girando = false;
         document.getElementById("btnGirar").disabled = false;
-        mostrarResultado(_0x1a2b[_0xaa11]);
-      }, _0x44dd);
+        mostrarResultado(opciones[indiceGanador]);
+      }, tiempoEspera);
     }
 
-    function mostrarResultado(_0x55ee) {
-      const _0x66ff = _0x55ee.toLowerCase();
-      document.getElementById("textoResultado").innerText = `¡Obtuviste el ${_0x66ff}!`;
+    function mostrarResultado(resultado) {
+      const textoFormateado = resultado.toLowerCase();
+      document.getElementById("textoResultado").innerText = `¡Obtuviste el ${textoFormateado}!`;
       document.getElementById("resultado-container").style.display = "block";
       document.getElementById("accion-container").style.display = "block";
     }
 
     async function capturarYCompartir() {
-      const _0x77aa = document.getElementById("captura-area");
+      const areaCaptura = document.getElementById("captura-area");
 
       if (typeof html2canvas === "undefined") {
         alert("La función de captura se está inicializando, intenta nuevamente en un momento.");
@@ -263,22 +270,28 @@
       }
 
       try {
-        const _0x88bb = await html2canvas(_0x77aa, { useCORS: true, allowTaint: true });
-        _0x88bb.toBlob(async (_0x99cc) => {
-          if (!_0x99cc) return;
-          const _0x00dd = new File([_0x99cc], "resultado_rueda.png", { type: "image/png" });
+        const canvasCaptura = await html2canvas(areaCaptura, { useCORS: true, allowTaint: true });
+        
+        canvasCaptura.toBlob(async (blob) => {
+          if (!blob) return;
+          const archivo = new File([blob], "resultado_rueda.png", { type: "image/png" });
 
-          if (navigator.canShare && navigator.canShare({ files: [_0x00dd] })) {
-            await navigator.share({ files: [_0x00dd], title: "Mi Premio", text: "¡Mira lo que me tocó en la rueda!" });
+          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            await navigator.share({
+              files: [archivo],
+              title: "Mi Premio",
+              text: "¡Mira lo que me tocó en la rueda!"
+            });
           } else {
-            const _0x11ee = document.createElement("a");
-            _0x11ee.href = URL.createObjectURL(_0x99cc);
-            _0x11ee.download = "resultado_rueda.png";
-            _0x11ee.click();
+            const enlaceDescarga = document.createElement("a");
+            enlaceDescarga.href = URL.createObjectURL(blob);
+            enlaceDescarga.download = "resultado_rueda.png";
+            enlaceDescarga.click();
           }
         }, "image/png");
-      } catch (_0x22ff) {
-        console.error("Error:", _0x22ff);
+
+      } catch (error) {
+        console.error("Error al capturar o compartir:", error);
       }
     }
 
