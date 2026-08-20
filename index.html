@@ -265,34 +265,29 @@
       }
 
       try {
+        // 1. Generar la imagen con html2canvas
         const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
         
-        canvasCaptura.toBlob(async (blob) => {
-          if (!blob) return;
-          
-          const resultadoTexto = document.getElementById("textoResultado").innerText;
-          const textoMensaje = `¡Hola Laura! ${resultadoTexto}`;
-          const archivo = new File([blob], "resultado_rueda.png", { type: "image/png" });
+        // 2. Descargar automáticamente la captura al dispositivo
+        const enlaceDescarga = document.createElement("a");
+        enlaceDescarga.download = "resultado_rueda.png";
+        enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
+        enlaceDescarga.click();
 
-          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
-            await navigator.share({
-              files: [archivo],
-              title: "Resultado Rueda",
-              text: textoMensaje
-            });
-          } else {
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "resultado_rueda.png";
-            a.click();
+        // 3. Preparar el mensaje con el premio
+        const resultadoTexto = document.getElementById("textoResultado").innerText;
+        const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
 
-            const urlWhatsapp = `https://wa.me/${NUMERO_LAURA}?text=${encodeURIComponent(textoMensaje)}`;
-            window.open(urlWhatsapp, '_blank');
-          }
-        }, "image/png");
+        // 4. Abrir el chat directo con Laura en WhatsApp
+        const urlWhatsapp = `https://api.whatsapp.com/send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
+        
+        setTimeout(() => {
+          window.location.href = urlWhatsapp;
+        }, 500);
 
       } catch (err) {
         console.error("Error al capturar:", err);
+        alert("Hubo un error al generar la imagen. Intenta nuevamente.");
       }
     }
 
