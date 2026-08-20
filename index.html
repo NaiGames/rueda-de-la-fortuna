@@ -155,7 +155,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
   <script>
-    const NUMERO_LAURA = "5491132182456";
+    const NUMERO_LAURA = "5491160140422";
 
     const _0x1a2b = ["Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5", "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"];
     const _0x3c4d = ["#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71", "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"];
@@ -266,7 +266,7 @@
         // 1. Renderizar la captura
         const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
 
-        // 2. Intentar copiar la imagen directamente al portapapeles
+        // 2. Intentar copiar al portapapeles
         canvasCaptura.toBlob(async (blob) => {
           let copiado = false;
           if (navigator.clipboard && window.ClipboardItem) {
@@ -275,11 +275,11 @@
               await navigator.clipboard.write([item]);
               copiado = true;
             } catch (err) {
-              console.log("No se pudo copiar directamente al portapapeles:", err);
+              console.log("No se pudo copiar directamente:", err);
             }
           }
 
-          // 3. Descargar además el archivo de respaldo
+          // 3. Descarga de respaldo en el dispositivo
           const enlaceDescarga = document.createElement("a");
           enlaceDescarga.download = "resultado_rueda.png";
           enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
@@ -287,18 +287,19 @@
           enlaceDescarga.click();
           document.body.removeChild(enlaceDescarga);
 
-          // 4. Redirigir a WhatsApp
+          // 4. Mensaje formateado para Laura
           const resultadoTexto = document.getElementById("textoResultado").innerText;
-          let textoMensaje = `¡Hola Laura! ${resultadoTexto}.`;
+          const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
+
           if (copiado) {
-            textoMensaje += ` (La imagen del resultado se copió a mi portapapeles, te la pego a continuación).`;
+            alert("¡Resultado copiado! En WhatsApp mantén presionado el campo de texto y selecciona 'Pegar' para enviar la imagen.");
           }
 
           const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
 
           setTimeout(() => {
             window.location.href = urlWhatsapp;
-          }, 600);
+          }, 300);
         });
 
       } catch (err) {
