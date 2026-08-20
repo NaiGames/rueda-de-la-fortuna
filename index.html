@@ -265,29 +265,30 @@
       }
 
       try {
-        // 1. Generar la imagen con html2canvas
+        // 1. Renderizar la imagen
         const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
         
-        // 2. Descargar automáticamente la captura al dispositivo
+        // 2. Descargar automáticamente la captura al teléfono
         const enlaceDescarga = document.createElement("a");
         enlaceDescarga.download = "resultado_rueda.png";
         enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
+        document.body.appendChild(enlaceDescarga);
         enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
 
-        // 3. Preparar el mensaje con el premio
+        // 3. Preparar el mensaje y el enlace directo a WhatsApp
         const resultadoTexto = document.getElementById("textoResultado").innerText;
         const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
-
-        // 4. Abrir el chat directo con Laura en WhatsApp
         const urlWhatsapp = `https://api.whatsapp.com/send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
         
+        // 4. Redirigir directamente al chat de Laura tras medio segundo
         setTimeout(() => {
           window.location.href = urlWhatsapp;
-        }, 500);
+        }, 600);
 
       } catch (err) {
         console.error("Error al capturar:", err);
-        alert("Hubo un error al generar la imagen. Intenta nuevamente.");
+        alert("Hubo un error al generar la captura. Intenta nuevamente.");
       }
     }
 
