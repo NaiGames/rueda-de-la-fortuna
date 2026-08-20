@@ -275,7 +275,7 @@
 
     // 2. Redirección directa a WhatsApp sin pasar por el portapapeles
     const resultadoTexto = document.getElementById("textoResultado").innerText;
-    const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
+    const textoMensaje = `¡Hola Laura! ${resultadoTexto}. La imagen del resultado se copio, solo manten presionado en el mensaje y dale a Pegar.`;
     const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
 
     setTimeout(() => {
