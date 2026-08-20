@@ -255,62 +255,61 @@
     }
 
     async function capturarYCompartir() {
-      const area = document.getElementById("captura-area");
+  const area = document.getElementById("captura-area");
 
-      if (typeof html2canvas === "undefined") {
-        alert("Cargando función de captura, intenta de nuevo en un segundo.");
+  if (typeof html2canvas === "undefined") {
+    alert("Cargando función de captura, intenta de nuevo en un segundo.");
+    return;
+  }
+
+  try {
+    const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
+    
+    canvasCaptura.toBlob(async (blob) => {
+      if (!blob) {
+        alert("Error al procesar la captura.");
         return;
       }
 
-      try {
-        const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
-        
-        canvasCaptura.toBlob(async (blob) => {
-          if (!blob) {
-            alert("Error al procesar la captura.");
-            return;
-          }
+      const resultadoTexto = document.getElementById("textoResultado").innerText;
+      const file = new File([blob], "resultado_rueda.png", { type: "image/png" });
 
-          const resultadoTexto = document.getElementById("textoResultado").innerText;
-          const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
-          const file = new File([blob], "resultado_rueda.png", { type: "image/png" });
-
-          // 1. Usar Web Share API si el sistema la soporta (iOS Safari / Android Chrome)
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: "Resultado Rueda",
-                text: textoMensaje
-              });
-              return;
-            } catch (shareErr) {
-              // Si el usuario canceló la hoja de compartir, no hacemos nada más
-              if (shareErr.name === "AbortError") return;
-              console.log("Error al compartir vía API:", shareErr);
-            }
-          }
-
-          // 2. Fallback para computadoras o navegadores no compatibles
-          const enlaceDescarga = document.createElement("a");
-          enlaceDescarga.download = "resultado_rueda.png";
-          enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
-          document.body.appendChild(enlaceDescarga);
-          enlaceDescarga.click();
-          document.body.removeChild(enlaceDescarga);
-
-          const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
-          setTimeout(() => {
-            window.location.href = urlWhatsapp;
-          }, 300);
-
-        }, "image/png");
-
-      } catch (err) {
-        console.error("Error al capturar:", err);
-        alert("Hubo un error al generar la captura.");
+      // 1. Usar Web Share API si el dispositivo lo soporta (pasa el archivo directamente)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          const textoMensajeShare = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
+          await navigator.share({
+            files: [file],
+            title: "Resultado Rueda",
+            text: textoMensajeShare
+          });
+          return;
+        } catch (shareErr) {
+          if (shareErr.name === "AbortError") return;
+          console.log("Error al compartir vía API:", shareErr);
+        }
       }
-    }
+
+      // 2. Fallback con instrucciones directas en el cuerpo del mensaje de WhatsApp
+      const enlaceDescarga = document.createElement("a");
+      enlaceDescarga.download = "resultado_rueda.png";
+      enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
+      document.body.appendChild(enlaceDescarga);
+      enlaceDescarga.click();
+      document.body.removeChild(enlaceDescarga);
+
+      const textoMensajeWA = `¡Hola Laura! ${resultadoTexto}. (Para aduntar la imagen, mantén presionado aquí y selecciona 'Pegar').`;
+      const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensajeWA)}`;
+
+      window.location.href = urlWhatsapp;
+
+    }, "image/png");
+
+  } catch (err) {
+    console.error("Error al capturar:", err);
+    alert("Hubo un error al generar la captura.");
+  }
+}
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", inicializarRueda);
