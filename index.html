@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rueda de la Fortuna</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: Arial, sans-serif;
@@ -128,6 +126,41 @@
       height: 20px;
       fill: #ffffff;
     }
+
+    /* Estilos para vista previa en iOS */
+    #modal-ios {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #modal-ios img {
+      max-width: 90%;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+
+    #modal-ios p {
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .btn-modal {
+      background: #25d366;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -152,6 +185,12 @@
       </svg>
       Presiona aquí para enviar el resultado a Laura
     </button>
+  </div>
+
+  <div id="modal-ios">
+    <img id="img-preview" src="" alt="Resultado">
+    <p>Mantén presionada la imagen para guardarla y luego presiona el botón para ir a WhatsApp.</p>
+    <a id="link-wa-ios" class="btn-modal" href="#">Ir a WhatsApp</a>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
@@ -265,26 +304,33 @@
       }
 
       try {
-        // 1. Renderizar la imagen
         const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
-        
-        // 2. Descargar automáticamente la captura al teléfono
-        const enlaceDescarga = document.createElement("a");
-        enlaceDescarga.download = "resultado_rueda.png";
-        enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
-        document.body.appendChild(enlaceDescarga);
-        enlaceDescarga.click();
-        document.body.removeChild(enlaceDescarga);
+        const imgData = canvasCaptura.toDataURL("image/png");
 
-        // 3. Preparar el mensaje y forzar el esquema nativo de WhatsApp
         const resultadoTexto = document.getElementById("textoResultado").innerText;
         const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
-        const urlWhatsappNativo = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
-        
-        // 4. Abrir directamente la aplicación de WhatsApp sin intermediarios
-        setTimeout(() => {
-          window.location.href = urlWhatsappNativo;
-        }, 600);
+        const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+          // En iPhone muestra la imagen en pantalla para guardar manualmente
+          document.getElementById("img-preview").src = imgData;
+          document.getElementById("link-wa-ios").href = urlWhatsapp;
+          document.getElementById("modal-ios").style.display = "flex";
+        } else {
+          // En Android descarga directamente y abre WhatsApp
+          const enlaceDescarga = document.createElement("a");
+          enlaceDescarga.download = "resultado_rueda.png";
+          enlaceDescarga.href = imgData;
+          document.body.appendChild(enlaceDescarga);
+          enlaceDescarga.click();
+          document.body.removeChild(enlaceDescarga);
+
+          setTimeout(() => {
+            window.location.href = urlWhatsapp;
+          }, 600);
+        }
 
       } catch (err) {
         console.error("Error al capturar:", err);
