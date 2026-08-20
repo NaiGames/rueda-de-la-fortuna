@@ -276,14 +276,14 @@
         enlaceDescarga.click();
         document.body.removeChild(enlaceDescarga);
 
-        // 3. Preparar el mensaje y el enlace directo a WhatsApp
+        // 3. Preparar el mensaje y forzar el esquema nativo de WhatsApp
         const resultadoTexto = document.getElementById("textoResultado").innerText;
         const textoMensaje = `¡Hola Laura! ${resultadoTexto}. Te adjunto la imagen de mi resultado.`;
-        const urlWhatsapp = `https://api.whatsapp.com/send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
+        const urlWhatsappNativo = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
         
-        // 4. Redirigir directamente al chat de Laura tras medio segundo
+        // 4. Abrir directamente la aplicación de WhatsApp sin intermediarios
         setTimeout(() => {
-          window.location.href = urlWhatsapp;
+          window.location.href = urlWhatsappNativo;
         }, 600);
 
       } catch (err) {
