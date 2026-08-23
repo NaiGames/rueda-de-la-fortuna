@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rueda de la Fortuna</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -32,6 +33,7 @@
     h1 {
       margin: 0 0 15px 0;
       font-size: 22px;
+      line-height: 1.25;
       text-align: center;
       color: #2c3e50;
     }
@@ -50,10 +52,13 @@
       transform: translateX(-50%);
       width: 0;
       height: 0;
+
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
       border-top: 25px solid #e74c3c;
+
       z-index: 10;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));
     }
 
     canvas {
@@ -62,6 +67,10 @@
       height: 320px;
       border-radius: 50%;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+      transform: rotate(0deg);
+      transform-origin: center center;
+      will-change: transform;
     }
 
     .btn-girar {
@@ -74,7 +83,16 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 3px 7px rgba(0,0,0,0.15);
+    }
+
+    .btn-girar:hover:not(:disabled) {
+      background-color: #219653;
+    }
+
+    .btn-girar:active:not(:disabled) {
+      transform: scale(0.97);
     }
 
     .btn-girar:disabled {
@@ -91,6 +109,8 @@
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       width: 100%;
+
+      animation: aparecer 0.4s ease-out;
     }
 
     #textoResultado {
@@ -104,6 +124,8 @@
       margin-top: 15px;
       width: 100%;
       max-width: 320px;
+
+      animation: aparecer 0.4s ease-out;
     }
 
     .btn-compartir {
@@ -111,16 +133,36 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
+
       background-color: #25d366;
       color: #ffffff;
+
       border: none;
       padding: 14px 18px;
       border-radius: 8px;
+
       font-size: 15px;
       font-weight: bold;
+
       cursor: pointer;
       width: 100%;
+
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-compartir:hover {
+      background-color: #20bd5a;
+    }
+
+    .btn-compartir:active {
+      transform: scale(0.98);
+    }
+
+    .btn-compartir:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
     }
 
     .btn-compartir svg {
@@ -128,177 +170,808 @@
       height: 20px;
       fill: #ffffff;
     }
+
+    #notificacion-copiado {
+      display: none;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #27ae60;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    @keyframes aparecer {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 350px) {
+      .rueda-container,
+      canvas {
+        width: 290px;
+        height: 290px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <div id="captura-area">
+
     <h1>Gira la rueda de la fortuna de Laura</h1>
+
     <div class="rueda-container">
       <div class="flecha"></div>
       <canvas id="canvasRueda" width="320" height="320"></canvas>
     </div>
+
     <div id="resultado-container">
       <h2 id="textoResultado"></h2>
     </div>
+
   </div>
 
-  <button id="btnGirar" class="btn-girar" onclick="girarRueda()">GIRAR</button>
+  <button id="btnGirar" class="btn-girar" onclick="girarRueda()">
+    GIRAR
+  </button>
 
   <div id="accion-container">
-    <button class="btn-compartir" onclick="capturarYEnviarLaura()">
+
+    <button id="btnEnviar" class="btn-compartir" onclick="enviarResultado()">
+
       <svg viewBox="0 0 24 24">
         <path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m8 3a5 5 0 0 0-5 5a5 5 0 0 0 5 5a5 5 0 0 0 5-5a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3a3 3 0 0 1-3 3a3 3 0 0 1-3-3a3 3 0 0 1 3-3Z"/>
       </svg>
+
       Enviar resultado a Laura
+
     </button>
+
+    <div id="notificacion-copiado">
+      ¡Imagen copiada! Pegala en el chat de WhatsApp.
+    </div>
+
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
+  <!-- html2canvas -->
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+    defer>
+  </script>
+
 
   <script>
+
+    /* =========================================================
+       CONFIGURACIÓN
+       ========================================================= */
+
     const NUMERO_LAURA = "5491160140422";
 
-    const _0x1a2b = ["Premio 1", "Premio 2", "Premio 3", "Premio 4", "Premio 5", "Premio 6", "Premio 7", "Premio 8", "Premio 9", "Premio 10"];
-    const _0x3c4d = ["#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71", "#1abc9c", "#d35400", "#c0392b", "#8e44ad", "#16a085"];
 
-    let canvas, _0x5e6f;
-    const _0x7a8b = _0x1a2b.length;
-    const _0x9c0d = (2 * Math.PI) / _0x7a8b;
-    const _0x1e2f = 360 / _0x7a8b;
+    /*
+     * PREMIOS
+     *
+     * IMPORTANTE:
+     *
+     * Los 10 premios se muestran en la rueda.
+     *
+     * El Premio 5 está visualmente presente,
+     * pero está excluido de la selección del ganador.
+     */
 
-    let _0x3a4b = 0;
-    let _0x5c6d = false;
+    const PREMIOS = [
+      "Premio 1",
+      "Premio 2",
+      "Premio 3",
+      "Premio 4",
+      "Premio 5",
+      "Premio 6",
+      "Premio 7",
+      "Premio 8",
+      "Premio 9",
+      "Premio 10"
+    ];
+
+
+    const COLORES = [
+      "#f39c12",
+      "#e74c3c",
+      "#9b59b6",
+      "#3498db",
+      "#2ecc71",
+      "#1abc9c",
+      "#d35400",
+      "#c0392b",
+      "#8e44ad",
+      "#16a085"
+    ];
+
+
+    /*
+     * Índice del premio que NO puede salir.
+     *
+     * Premio 1 = índice 0
+     * Premio 2 = índice 1
+     * Premio 3 = índice 2
+     * Premio 4 = índice 3
+     * Premio 5 = índice 4  <-- EXCLUIDO
+     * Premio 6 = índice 5
+     * etc.
+     */
+
+    const PREMIO_EXCLUIDO = 4;
+
+
+    /* =========================================================
+       VARIABLES DE LA RUEDA
+       ========================================================= */
+
+    let canvas;
+    let ctx;
+
+    const cantidadPremios = PREMIOS.length;
+
+    const anguloSector = (2 * Math.PI) / cantidadPremios;
+
+    const gradosSector = 360 / cantidadPremios;
+
+    let rotacionActual = 0;
+
+    let girando = false;
+
+    let blobCapturado = null;
+
+    let ultimoResultado = null;
+
+
+    /* =========================================================
+       INICIALIZACIÓN
+       ========================================================= */
 
     function inicializarRueda() {
+
       canvas = document.getElementById("canvasRueda");
-      if (!canvas) return;
-      _0x5e6f = canvas.getContext("2d");
-      _0x7c8d();
-    }
 
-    function _0x7c8d() {
-      if (!_0x5e6f) return;
-      const _0x1122 = canvas.width / 2;
-      const _0x3344 = canvas.height / 2;
-      const _0x5566 = canvas.width / 2;
-
-      _0x5e6f.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < _0x7a8b; i++) {
-        const _0x7788 = i * _0x9c0d;
-        const _0x9900 = _0x7788 + _0x9c0d;
-
-        _0x5e6f.beginPath();
-        _0x5e6f.moveTo(_0x1122, _0x3344);
-        _0x5e6f.arc(_0x1122, _0x3344, _0x5566, _0x7788, _0x9900);
-        _0x5e6f.fillStyle = _0x3c4d[i % _0x3c4d.length];
-        _0x5e6f.fill();
-        _0x5e6f.lineWidth = 2;
-        _0x5e6f.strokeStyle = "#ffffff";
-        _0x5e6f.stroke();
-
-        _0x5e6f.save();
-        _0x5e6f.translate(_0x1122, _0x3344);
-        _0x5e6f.rotate(_0x7788 + _0x9c0d / 2);
-        _0x5e6f.textAlign = "right";
-        _0x5e6f.fillStyle = "#ffffff";
-        _0x5e6f.font = "bold 13px Arial";
-        _0x5e6f.fillText(_0x1a2b[i], _0x5566 - 15, 4);
-        _0x5e6f.restore();
-      }
-    }
-
-    function girarRueda() {
-      if (_0x5c6d) return;
-      _0x5c6d = true;
-
-      document.getElementById("btnGirar").disabled = true;
-      document.getElementById("resultado-container").style.display = "none";
-      document.getElementById("accion-container").style.display = "none";
-
-      let _0xaa11 = Math.floor(Math.random() * (_0x7a8b - 1));
-      if (_0xaa11 >= 4) _0xaa11++;
-
-      const _0xbb22 = (_0xaa11 === 3 || _0xaa11 === 5);
-      const _0xcc33 = Math.random() < 0.35;
-      const _0xdd44 = _0xbb22 && _0xcc33;
-
-      const _0xee55 = 4 + Math.random() * (_0x1e2f - 8);
-      const _0xff66 = (360 - (_0xaa11 * _0x1e2f) - _0xee55 + 270) % 360;
-
-      const _0x11aa = _0x3a4b % 360;
-      let _0x22bb = (_0xff66 - _0x11aa + 360) % 360;
-      const _0x33cc = (5 * 360) + _0x22bb;
-
-      if (_0xdd44) {
-        canvas.style.transition = "transform 5s cubic-bezier(0.2, 0.95, 0.25, 1.12)";
-      } else {
-        canvas.style.transition = "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)";
-      }
-
-      _0x3a4b += _0x33cc;
-      canvas.style.transform = `rotate(${_0x3a4b}deg)`;
-
-      const _0x44dd = _0xdd44 ? 5000 : 4000;
-
-      setTimeout(() => {
-        _0x5c6d = false;
-        document.getElementById("btnGirar").disabled = false;
-        mostrarResultado(_0x1a2b[_0xaa11]);
-      }, _0x44dd);
-    }
-
-    function mostrarResultado(_0x55ee) {
-      const _0x66ff = _0x55ee.toLowerCase();
-      document.getElementById("textoResultado").innerText = `¡Obtuviste el ${_0x66ff}!`;
-      document.getElementById("resultado-container").style.display = "block";
-      document.getElementById("accion-container").style.display = "block";
-    }
-
-    async function capturarYEnviarLaura() {
-      const area = document.getElementById("captura-area");
-
-      if (typeof html2canvas === "undefined") {
-        alert("La función de captura se está inicializando, intenta nuevamente en un momento.");
+      if (!canvas) {
         return;
       }
 
-      try {
-        const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
+      ctx = canvas.getContext("2d");
 
-        canvasCaptura.toBlob((blob) => {
-          if (!blob) return;
+      dibujarRueda();
+    }
 
-          const resultadoTexto = document.getElementById("textoResultado").innerText;
-          const textoMensaje = `¡Hola Laura! ${resultadoTexto}`;
 
-          // 1. Descarga la imagen automáticamente
-          const enlace = document.createElement("a");
-          enlace.href = URL.createObjectURL(blob);
-          enlace.download = "resultado_rueda.png";
-          document.body.appendChild(enlace);
-          enlace.click();
-          document.body.removeChild(enlace);
+    /* =========================================================
+       DIBUJAR RUEDA
+       ========================================================= */
 
-          // 2. Abre el chat directo de WhatsApp con el texto preparado
-          setTimeout(() => {
-            const urlWhatsapp = `https://wa.me/${NUMERO_LAURA}?text=${encodeURIComponent(textoMensaje)}`;
-            window.open(urlWhatsapp, '_blank');
-          }, 500);
+    function dibujarRueda() {
 
-        }, "image/png");
+      if (!ctx) {
+        return;
+      }
 
-      } catch (err) {
-        console.error("Error al capturar:", err);
+      const centroX = canvas.width / 2;
+      const centroY = canvas.height / 2;
+
+      const radio = canvas.width / 2;
+
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+
+      for (let i = 0; i < cantidadPremios; i++) {
+
+        const inicio = i * anguloSector;
+
+        const fin = inicio + anguloSector;
+
+
+        /* Sector */
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+          centroX,
+          centroY
+        );
+
+        ctx.arc(
+          centroX,
+          centroY,
+          radio,
+          inicio,
+          fin
+        );
+
+        ctx.closePath();
+
+
+        ctx.fillStyle =
+          COLORES[i % COLORES.length];
+
+        ctx.fill();
+
+
+        /* Separador blanco */
+
+        ctx.lineWidth = 2;
+
+        ctx.strokeStyle = "#ffffff";
+
+        ctx.stroke();
+
+
+        /* Texto */
+
+        ctx.save();
+
+        ctx.translate(
+          centroX,
+          centroY
+        );
+
+        ctx.rotate(
+          inicio + anguloSector / 2
+        );
+
+        ctx.textAlign = "right";
+
+        ctx.textBaseline = "middle";
+
+        ctx.fillStyle = "#ffffff";
+
+        ctx.font = "bold 13px Arial";
+
+        ctx.fillText(
+          PREMIOS[i],
+          radio - 15,
+          0
+        );
+
+        ctx.restore();
       }
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", inicializarRueda);
+
+    /* =========================================================
+       ELEGIR GANADOR
+       ========================================================= */
+
+    function elegirGanador() {
+
+      /*
+       * Creamos una lista con todos los sectores,
+       * excepto el Premio 5.
+       *
+       * La rueda sigue mostrando los 10 sectores.
+       * Solamente la selección aleatoria utiliza 9.
+       */
+
+      const premiosDisponibles = [];
+
+      for (let i = 0; i < cantidadPremios; i++) {
+
+        if (i !== PREMIO_EXCLUIDO) {
+
+          premiosDisponibles.push(i);
+        }
+      }
+
+
+      /*
+       * Selección aleatoria entre los 9 premios válidos.
+       */
+
+      const posicionAleatoria =
+        Math.floor(
+          Math.random() *
+          premiosDisponibles.length
+        );
+
+
+      return premiosDisponibles[posicionAleatoria];
+    }
+
+
+    /* =========================================================
+       CALCULAR POSICIÓN FINAL
+       ========================================================= */
+
+    function calcularRotacionParaPremio(indiceGanador) {
+
+      /*
+       * Queremos que el centro del sector ganador
+       * quede exactamente debajo de la flecha.
+       *
+       * La flecha está arriba de la rueda.
+       *
+       * En el canvas, el primer sector comienza en 0°,
+       * es decir, hacia la derecha.
+       *
+       * Por eso usamos 270° como referencia superior.
+       */
+
+      const centroSector =
+        indiceGanador * gradosSector +
+        gradosSector / 2;
+
+
+      /*
+       * Pequeña variación aleatoria.
+       *
+       * Esto evita que todos los giros terminen
+       * exactamente en el mismo punto del sector.
+       *
+       * Se mantiene suficientemente lejos de las
+       * líneas divisorias.
+       */
+
+      const variacion =
+        (Math.random() - 0.5) *
+        (gradosSector * 0.45);
+
+
+      const objetivo =
+        270 -
+        centroSector +
+        variacion;
+
+
+      const rotacionNormalizada =
+        ((rotacionActual % 360) + 360) % 360;
+
+
+      let diferencia =
+        objetivo -
+        rotacionNormalizada;
+
+
+      /*
+       * Normalizamos la diferencia a 0-360.
+       */
+
+      diferencia =
+        ((diferencia % 360) + 360) % 360;
+
+
+      /*
+       * Siempre hacemos varias vueltas completas.
+       *
+       * Esto hace que el giro tenga aspecto natural.
+       */
+
+      const vueltasCompletas = 5;
+
+
+      return
+        vueltasCompletas * 360 +
+        diferencia;
+    }
+
+
+    /* =========================================================
+       GIRAR RUEDA
+       ========================================================= */
+
+    function girarRueda() {
+
+      if (girando) {
+        return;
+      }
+
+
+      girando = true;
+
+      blobCapturado = null;
+
+      ultimoResultado = null;
+
+
+      /* Bloquear botón */
+
+      const botonGirar =
+        document.getElementById("btnGirar");
+
+      botonGirar.disabled = true;
+
+
+      /* Ocultar resultado anterior */
+
+      document.getElementById(
+        "resultado-container"
+      ).style.display = "none";
+
+
+      document.getElementById(
+        "accion-container"
+      ).style.display = "none";
+
+
+      document.getElementById(
+        "notificacion-copiado"
+      ).style.display = "none";
+
+
+      /*
+       * Elegimos el ganador ANTES de comenzar
+       * la animación.
+       */
+
+      const indiceGanador =
+        elegirGanador();
+
+
+      ultimoResultado =
+        PREMIOS[indiceGanador];
+
+
+      /*
+       * Calculamos la rotación.
+       */
+
+      const rotacion =
+        calcularRotacionParaPremio(
+          indiceGanador
+        );
+
+
+      rotacionActual += rotacion;
+
+
+      /*
+       * Duración del giro.
+       */
+
+      const duracion = 4500;
+
+
+      /*
+       * Curva de animación.
+       *
+       * Empieza rápido y desacelera suavemente.
+       */
+
+      canvas.style.transition =
+        `transform ${duracion}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
+
+
+      canvas.style.transform =
+        `rotate(${rotacionActual}deg)`;
+
+
+      /*
+       * Esperamos a que termine la animación.
+       */
+
+      setTimeout(() => {
+
+        girando = false;
+
+        botonGirar.disabled = false;
+
+        mostrarResultado(
+          ultimoResultado
+        );
+
+      }, duracion + 100);
+    }
+
+
+    /* =========================================================
+       MOSTRAR RESULTADO
+       ========================================================= */
+
+    function mostrarResultado(premio) {
+
+      const texto =
+        `¡Obtuviste el ${premio.toLowerCase()}!`;
+
+
+      document.getElementById(
+        "textoResultado"
+      ).innerText = texto;
+
+
+      document.getElementById(
+        "resultado-container"
+      ).style.display = "block";
+
+
+      document.getElementById(
+        "accion-container"
+      ).style.display = "block";
+    }
+
+
+    /* =========================================================
+       CAPTURAR RESULTADO
+       ========================================================= */
+
+    async function capturarResultado() {
+
+      if (blobCapturado) {
+
+        return blobCapturado;
+      }
+
+
+      if (typeof html2canvas === "undefined") {
+
+        throw new Error(
+          "html2canvas todavía no está cargado."
+        );
+      }
+
+
+      const area =
+        document.getElementById(
+          "captura-area"
+        );
+
+
+      const canvasCaptura =
+        await html2canvas(
+          area,
+          {
+            useCORS: true,
+
+            allowTaint: true,
+
+            backgroundColor: "#f4f4f9",
+
+            scale:
+              Math.min(
+                window.devicePixelRatio || 1,
+                2
+              )
+          }
+        );
+
+
+      blobCapturado =
+        await new Promise(
+          (resolve, reject) => {
+
+            canvasCaptura.toBlob(
+              blob => {
+
+                if (blob) {
+
+                  resolve(blob);
+
+                } else {
+
+                  reject(
+                    new Error(
+                      "No se pudo crear la imagen."
+                    )
+                  );
+                }
+
+              },
+              "image/png"
+            );
+
+          }
+        );
+
+
+      return blobCapturado;
+    }
+
+
+    /* =========================================================
+       ENVIAR RESULTADO
+       ========================================================= */
+
+    async function enviarResultado() {
+
+      if (!ultimoResultado) {
+
+        return;
+      }
+
+
+      const botonEnviar =
+        document.getElementById(
+          "btnEnviar"
+        );
+
+
+      botonEnviar.disabled = true;
+
+
+      const textoResultado =
+        document.getElementById(
+          "textoResultado"
+        ).innerText;
+
+
+      const textoMensaje =
+        `¡Hola Laura! ${textoResultado}`;
+
+
+      let imagenCopiada = false;
+
+
+      try {
+
+        /*
+         * Generar imagen.
+         */
+
+        const blob =
+          await capturarResultado();
+
+
+        /*
+         * Intentar copiar directamente
+         * la imagen al portapapeles.
+         */
+
+        if (
+          blob &&
+          navigator.clipboard &&
+          window.ClipboardItem
+        ) {
+
+          try {
+
+            const item =
+              new ClipboardItem({
+                "image/png": blob
+              });
+
+
+            await navigator.clipboard.write([
+              item
+            ]);
+
+
+            imagenCopiada = true;
+
+
+            document.getElementById(
+              "notificacion-copiado"
+            ).innerText =
+              "¡Imagen copiada! Pegala en el chat de WhatsApp.";
+
+
+            document.getElementById(
+              "notificacion-copiado"
+            ).style.display = "block";
+
+          } catch (error) {
+
+            console.log(
+              "No se pudo copiar la imagen:",
+              error
+            );
+          }
+        }
+
+
+        /*
+         * Si el navegador no permite Clipboard,
+         * descargamos la imagen.
+         */
+
+        if (!imagenCopiada && blob) {
+
+          const url =
+            URL.createObjectURL(blob);
+
+
+          const enlace =
+            document.createElement("a");
+
+
+          enlace.href = url;
+
+          enlace.download =
+            "resultado_rueda.png";
+
+
+          document.body.appendChild(
+            enlace
+          );
+
+
+          enlace.click();
+
+
+          document.body.removeChild(
+            enlace
+          );
+
+
+          URL.revokeObjectURL(url);
+
+
+          document.getElementById(
+            "notificacion-copiado"
+          ).innerText =
+            "La imagen fue descargada. Adjuntala en el chat de WhatsApp.";
+
+
+          document.getElementById(
+            "notificacion-copiado"
+          ).style.display = "block";
+        }
+
+
+      } catch (error) {
+
+        console.error(
+          "Error preparando la imagen:",
+          error
+        );
+
+        alert(
+          "No se pudo preparar la imagen del resultado."
+        );
+      }
+
+
+      /*
+       * Abrir WhatsApp.
+       */
+
+      setTimeout(() => {
+
+        const urlWhatsapp =
+          `https://wa.me/${NUMERO_LAURA}?text=${encodeURIComponent(textoMensaje)}`;
+
+
+        window.open(
+          urlWhatsapp,
+          "_blank"
+        );
+
+
+        botonEnviar.disabled = false;
+
+      }, 500);
+    }
+
+
+    /* =========================================================
+       INICIAR
+       ========================================================= */
+
+    if (
+      document.readyState === "loading"
+    ) {
+
+      document.addEventListener(
+        "DOMContentLoaded",
+        inicializarRueda
+      );
+
     } else {
+
       inicializarRueda();
     }
+
   </script>
+
 </body>
 </html>
