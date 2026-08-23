@@ -255,44 +255,45 @@
     }
 
     async function capturarYCompartir() {
-  const area = document.getElementById("captura-area");
+      const area = document.getElementById("captura-area");
 
-  if (typeof html2canvas === "undefined") {
-    alert("Cargando función de captura, intenta de nuevo en un segundo.");
-    return;
-  }
+      if (typeof html2canvas === "undefined") {
+        alert("Cargando función de captura, intenta de nuevo en un segundo.");
+        return;
+      }
 
-  try {
-    const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
+      try {
+        const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
 
-    // 1. Nombre único con fecha y hora (evita carteles de sobreescritura)
-    const ahora = new Date();
-    const fechaFormateada = ahora.toISOString().slice(0, 10); // YYYY-MM-DD
-    const horaFormateada = ahora.toTimeString().slice(0, 8).replace(/:/g, "-"); // HH-MM-SS
-    const nombreArchivo = `resultado_rueda_${fechaFormateada}_${horaFormateada}.png`;
+        // 1. Nombre único con fecha y hora para evitar reemplazos
+        const ahora = new Date();
+        const fechaFormateada = ahora.toISOString().slice(0, 10);
+        const horaFormateada = ahora.toTimeString().slice(0, 8).replace(/:/g, "-");
+        const nombreArchivo = `resultado_rueda_${fechaFormateada}_${horaFormateada}.png`;
 
-    // 2. Descarga limpia en segundo plano
-    const enlaceDescarga = document.createElement("a");
-    enlaceDescarga.download = nombreArchivo;
-    enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
-    document.body.appendChild(enlaceDescarga);
-    enlaceDescarga.click();
-    document.body.removeChild(enlaceDescarga);
+        // 2. Descargar la captura limpia
+        const enlaceDescarga = document.createElement("a");
+        enlaceDescarga.download = nombreArchivo;
+        enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
 
-    // 3. Redirección a WhatsApp con la nueva instrucción en el mensaje
-    const resultadoTexto = document.getElementById("textoResultado").innerText;
-    const textoMensaje = `¡Hola Laura! ${resultadoTexto}. La imagen del resultado se copio, solo manten presionado en el mensaje y dale a Pegar.`;
-    const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
+        // 3. Redirección directa a WhatsApp con las instrucciones de pegado
+        const resultadoTexto = document.getElementById("textoResultado").innerText;
+        const textoMensaje = `¡Hola Laura! ${resultadoTexto}. La imagen del resultado se copio, solo manten presionado en el mensaje y dale a Pegar.`;
+        const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
 
-    setTimeout(() => {
-      window.location.href = urlWhatsapp;
-    }, 400);
+        setTimeout(() => {
+          window.location.href = urlWhatsapp;
+        }, 400);
 
-  } catch (err) {
-    console.error("Error al capturar:", err);
-    alert("Hubo un error al generar la captura.");
-  }
-}
+      } catch (err) {
+        console.error("Error al capturar:", err);
+        alert("Hubo un error al generar la captura.");
+      }
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", inicializarRueda);
     } else {
