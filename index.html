@@ -265,28 +265,46 @@
       try {
         const canvasCaptura = await html2canvas(area, { useCORS: true, allowTaint: true });
 
-        // 1. Nombre único con fecha y hora para evitar reemplazos
-        const ahora = new Date();
-        const fechaFormateada = ahora.toISOString().slice(0, 10);
-        const horaFormateada = ahora.toTimeString().slice(0, 8).replace(/:/g, "-");
-        const nombreArchivo = `resultado_rueda_${fechaFormateada}_${horaFormateada}.png`;
+        canvasCaptura.toBlob(async (blob) => {
+          if (!blob) {
+            alert("Error al procesar la imagen.");
+            return;
+          }
 
-        // 2. Descargar la captura limpia
-        const enlaceDescarga = document.createElement("a");
-        enlaceDescarga.download = nombreArchivo;
-        enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
-        document.body.appendChild(enlaceDescarga);
-        enlaceDescarga.click();
-        document.body.removeChild(enlaceDescarga);
+          const ahora = new Date();
+          const fechaFormateada = ahora.toISOString().slice(0, 10);
+          const horaFormateada = ahora.toTimeString().slice(0, 8).replace(/:/g, "-");
+          const nombreArchivo = `resultado_rueda_${fechaFormateada}_${horaFormateada}.png`;
+          const archivo = new File([blob], nombreArchivo, { type: "image/png" });
 
-        // 3. Redirección directa a WhatsApp con las instrucciones de pegado
-        const resultadoTexto = document.getElementById("textoResultado").innerText;
-        const textoMensaje = `¡Hola Laura! ${resultadoTexto}. La imagen del resultado se copio, solo manten presionado en el mensaje y dale a Pegar.`;
-        const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje)}`;
+          const resultadoTexto = document.getElementById("textoResultado").innerText;
+          const textoMensaje = `¡Hola Laura! ${resultadoTexto}`;
 
-        setTimeout(() => {
-          window.location.href = urlWhatsapp;
-        }, 400);
+          // Compartir nativo (WhatsApp, Telegram, etc.)
+          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            try {
+              await navigator.share({
+                files: [archivo],
+                title: 'Resultado Rueda',
+                text: textoMensaje
+              });
+            } catch (shareErr) {
+              // El usuario canceló la acción de compartir
+              console.log("Compartir cancelado o no soportado:", shareErr);
+            }
+          } else {
+            // Fallback si la web corre en un navegador viejito sin Web Share API
+            const enlaceDescarga = document.createElement("a");
+            enlaceDescarga.download = nombreArchivo;
+            enlaceDescarga.href = canvasCaptura.toDataURL("image/png");
+            document.body.appendChild(enlaceDescarga);
+            enlaceDescarga.click();
+            document.body.removeChild(enlaceDescarga);
+
+            const urlWhatsapp = `whatsapp://send?phone=${NUMERO_LAURA}&text=${encodeURIComponent(textoMensaje + " (Te adjunto la captura de mi resultado)")}`;
+            setTimeout(() => { window.location.href = urlWhatsapp; }, 400);
+          }
+        }, "image/png");
 
       } catch (err) {
         console.error("Error al capturar:", err);
