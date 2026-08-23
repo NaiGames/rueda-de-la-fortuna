@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -181,6 +182,21 @@
       line-height: 1.4;
     }
 
+    /* =========================================================
+       VERSIÓN
+       ========================================================= */
+
+    #version {
+      position: fixed;
+      left: 8px;
+      bottom: 6px;
+      font-size: 11px;
+      color: #95a5a6;
+      opacity: 0.7;
+      pointer-events: none;
+      user-select: none;
+    }
+
     @keyframes aparecer {
       from {
         opacity: 0;
@@ -226,7 +242,7 @@
 
   <div id="accion-container">
 
-    <button id="btnEnviar" class="btn-compartir" onclick="enviarResultado()">
+    <button id="btnEnviar" class="btn-compartir" onclick="enviarResultado">
 
       <svg viewBox="0 0 24 24">
         <path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m8 3a5 5 0 0 0-5 5a5 5 0 0 0 5 5a5 5 0 0 0 5-5a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3a3 3 0 0 1-3 3a3 3 0 0 1-3-3a3 3 0 0 1 3-3Z"/>
@@ -241,6 +257,9 @@
     </div>
 
   </div>
+
+  <!-- Versión visible -->
+  <div id="version">v2.0</div>
 
 
   <!-- html2canvas -->
@@ -259,18 +278,6 @@
 
     const NUMERO_LAURA = "5491160140422";
 
-
-    /*
-     * PREMIOS
-     *
-     * IMPORTANTE:
-     *
-     * Los 10 premios se muestran en la rueda.
-     *
-     * El Premio 5 está visualmente presente,
-     * pero está excluido de la selección del ganador.
-     */
-
     const PREMIOS = [
       "Premio 1",
       "Premio 2",
@@ -283,7 +290,6 @@
       "Premio 9",
       "Premio 10"
     ];
-
 
     const COLORES = [
       "#f39c12",
@@ -298,24 +304,18 @@
       "#16a085"
     ];
 
-
     /*
-     * Índice del premio que NO puede salir.
+     * Premio 5 = índice 4.
      *
-     * Premio 1 = índice 0
-     * Premio 2 = índice 1
-     * Premio 3 = índice 2
-     * Premio 4 = índice 3
-     * Premio 5 = índice 4  <-- EXCLUIDO
-     * Premio 6 = índice 5
-     * etc.
+     * Sigue siendo visible en la rueda,
+     * pero nunca puede ser seleccionado.
      */
 
     const PREMIO_EXCLUIDO = 4;
 
 
     /* =========================================================
-       VARIABLES DE LA RUEDA
+       VARIABLES
        ========================================================= */
 
     let canvas;
@@ -323,9 +323,11 @@
 
     const cantidadPremios = PREMIOS.length;
 
-    const anguloSector = (2 * Math.PI) / cantidadPremios;
+    const anguloSector =
+      (2 * Math.PI) / cantidadPremios;
 
-    const gradosSector = 360 / cantidadPremios;
+    const gradosSector =
+      360 / cantidadPremios;
 
     let rotacionActual = 0;
 
@@ -342,13 +344,15 @@
 
     function inicializarRueda() {
 
-      canvas = document.getElementById("canvasRueda");
+      canvas =
+        document.getElementById("canvasRueda");
 
       if (!canvas) {
         return;
       }
 
-      ctx = canvas.getContext("2d");
+      ctx =
+        canvas.getContext("2d");
 
       dibujarRueda();
     }
@@ -364,10 +368,14 @@
         return;
       }
 
-      const centroX = canvas.width / 2;
-      const centroY = canvas.height / 2;
+      const centroX =
+        canvas.width / 2;
 
-      const radio = canvas.width / 2;
+      const centroY =
+        canvas.height / 2;
+
+      const radio =
+        canvas.width / 2;
 
       ctx.clearRect(
         0,
@@ -377,11 +385,17 @@
       );
 
 
-      for (let i = 0; i < cantidadPremios; i++) {
+      for (
+        let i = 0;
+        i < cantidadPremios;
+        i++
+      ) {
 
-        const inicio = i * anguloSector;
+        const inicio =
+          i * anguloSector;
 
-        const fin = inicio + anguloSector;
+        const fin =
+          inicio + anguloSector;
 
 
         /* Sector */
@@ -403,14 +417,15 @@
 
         ctx.closePath();
 
-
         ctx.fillStyle =
-          COLORES[i % COLORES.length];
+          COLORES[
+            i % COLORES.length
+          ];
 
         ctx.fill();
 
 
-        /* Separador blanco */
+        /* Separadores */
 
         ctx.lineWidth = 2;
 
@@ -429,7 +444,8 @@
         );
 
         ctx.rotate(
-          inicio + anguloSector / 2
+          inicio +
+          anguloSector / 2
         );
 
         ctx.textAlign = "right";
@@ -438,7 +454,8 @@
 
         ctx.fillStyle = "#ffffff";
 
-        ctx.font = "bold 13px Arial";
+        ctx.font =
+          "bold 13px Arial";
 
         ctx.fillText(
           PREMIOS[i],
@@ -457,17 +474,19 @@
 
     function elegirGanador() {
 
-      /*
-       * Creamos una lista con todos los sectores,
-       * excepto el Premio 5.
-       *
-       * La rueda sigue mostrando los 10 sectores.
-       * Solamente la selección aleatoria utiliza 9.
-       */
-
       const premiosDisponibles = [];
 
-      for (let i = 0; i < cantidadPremios; i++) {
+
+      /*
+       * Todos los premios participan
+       * excepto Premio 5.
+       */
+
+      for (
+        let i = 0;
+        i < cantidadPremios;
+        i++
+      ) {
 
         if (i !== PREMIO_EXCLUIDO) {
 
@@ -476,10 +495,6 @@
       }
 
 
-      /*
-       * Selección aleatoria entre los 9 premios válidos.
-       */
-
       const posicionAleatoria =
         Math.floor(
           Math.random() *
@@ -487,41 +502,31 @@
         );
 
 
-      return premiosDisponibles[posicionAleatoria];
+      return premiosDisponibles[
+        posicionAleatoria
+      ];
     }
 
 
     /* =========================================================
-       CALCULAR POSICIÓN FINAL
+       CALCULAR ROTACIÓN
        ========================================================= */
 
-    function calcularRotacionParaPremio(indiceGanador) {
-
-      /*
-       * Queremos que el centro del sector ganador
-       * quede exactamente debajo de la flecha.
-       *
-       * La flecha está arriba de la rueda.
-       *
-       * En el canvas, el primer sector comienza en 0°,
-       * es decir, hacia la derecha.
-       *
-       * Por eso usamos 270° como referencia superior.
-       */
+    function calcularRotacionParaPremio(
+      indiceGanador
+    ) {
 
       const centroSector =
-        indiceGanador * gradosSector +
+        indiceGanador *
+        gradosSector +
         gradosSector / 2;
 
 
       /*
-       * Pequeña variación aleatoria.
+       * Variación dentro del sector.
        *
-       * Esto evita que todos los giros terminen
-       * exactamente en el mismo punto del sector.
-       *
-       * Se mantiene suficientemente lejos de las
-       * líneas divisorias.
+       * Nunca llega cerca de las líneas
+       * divisorias.
        */
 
       const variacion =
@@ -536,7 +541,10 @@
 
 
       const rotacionNormalizada =
-        ((rotacionActual % 360) + 360) % 360;
+        (
+          (rotacionActual % 360) +
+          360
+        ) % 360;
 
 
       let diferencia =
@@ -544,31 +552,25 @@
         rotacionNormalizada;
 
 
-      /*
-       * Normalizamos la diferencia a 0-360.
-       */
-
       diferencia =
-        ((diferencia % 360) + 360) % 360;
+        (
+          (diferencia % 360) +
+          360
+        ) % 360;
 
-
-      /*
-       * Siempre hacemos varias vueltas completas.
-       *
-       * Esto hace que el giro tenga aspecto natural.
-       */
 
       const vueltasCompletas = 5;
 
 
-      return
+      return (
         vueltasCompletas * 360 +
-        diferencia;
+        diferencia
+      );
     }
 
 
     /* =========================================================
-       GIRAR RUEDA
+       GIRAR
        ========================================================= */
 
     function girarRueda() {
@@ -577,7 +579,6 @@
         return;
       }
 
-
       girando = true;
 
       blobCapturado = null;
@@ -585,15 +586,13 @@
       ultimoResultado = null;
 
 
-      /* Bloquear botón */
-
       const botonGirar =
-        document.getElementById("btnGirar");
+        document.getElementById(
+          "btnGirar"
+        );
 
       botonGirar.disabled = true;
 
-
-      /* Ocultar resultado anterior */
 
       document.getElementById(
         "resultado-container"
@@ -611,8 +610,9 @@
 
 
       /*
-       * Elegimos el ganador ANTES de comenzar
-       * la animación.
+       * Elegir ganador.
+       *
+       * Premio 5 nunca es seleccionado.
        */
 
       const indiceGanador =
@@ -623,10 +623,6 @@
         PREMIOS[indiceGanador];
 
 
-      /*
-       * Calculamos la rotación.
-       */
-
       const rotacion =
         calcularRotacionParaPremio(
           indiceGanador
@@ -636,18 +632,8 @@
       rotacionActual += rotacion;
 
 
-      /*
-       * Duración del giro.
-       */
-
       const duracion = 4500;
 
-
-      /*
-       * Curva de animación.
-       *
-       * Empieza rápido y desacelera suavemente.
-       */
 
       canvas.style.transition =
         `transform ${duracion}ms cubic-bezier(0.12, 0.8, 0.18, 1)`;
@@ -656,10 +642,6 @@
       canvas.style.transform =
         `rotate(${rotacionActual}deg)`;
 
-
-      /*
-       * Esperamos a que termine la animación.
-       */
 
       setTimeout(() => {
 
@@ -676,10 +658,12 @@
 
 
     /* =========================================================
-       MOSTRAR RESULTADO
+       RESULTADO
        ========================================================= */
 
-    function mostrarResultado(premio) {
+    function mostrarResultado(
+      premio
+    ) {
 
       const texto =
         `¡Obtuviste el ${premio.toLowerCase()}!`;
@@ -713,7 +697,10 @@
       }
 
 
-      if (typeof html2canvas === "undefined") {
+      if (
+        typeof html2canvas ===
+        "undefined"
+      ) {
 
         throw new Error(
           "html2canvas todavía no está cargado."
@@ -735,7 +722,8 @@
 
             allowTaint: true,
 
-            backgroundColor: "#f4f4f9",
+            backgroundColor:
+              "#f4f4f9",
 
             scale:
               Math.min(
@@ -785,7 +773,6 @@
     async function enviarResultado() {
 
       if (!ultimoResultado) {
-
         return;
       }
 
@@ -794,7 +781,6 @@
         document.getElementById(
           "btnEnviar"
         );
-
 
       botonEnviar.disabled = true;
 
@@ -814,17 +800,12 @@
 
       try {
 
-        /*
-         * Generar imagen.
-         */
-
         const blob =
           await capturarResultado();
 
 
         /*
-         * Intentar copiar directamente
-         * la imagen al portapapeles.
+         * Intentar copiar imagen.
          */
 
         if (
@@ -857,7 +838,8 @@
 
             document.getElementById(
               "notificacion-copiado"
-            ).style.display = "block";
+            ).style.display =
+              "block";
 
           } catch (error) {
 
@@ -870,11 +852,13 @@
 
 
         /*
-         * Si el navegador no permite Clipboard,
-         * descargamos la imagen.
+         * Alternativa: descargar imagen.
          */
 
-        if (!imagenCopiada && blob) {
+        if (
+          !imagenCopiada &&
+          blob
+        ) {
 
           const url =
             URL.createObjectURL(blob);
@@ -894,9 +878,7 @@
             enlace
           );
 
-
           enlace.click();
-
 
           document.body.removeChild(
             enlace
@@ -914,7 +896,8 @@
 
           document.getElementById(
             "notificacion-copiado"
-          ).style.display = "block";
+          ).style.display =
+            "block";
         }
 
 
@@ -954,11 +937,12 @@
 
 
     /* =========================================================
-       INICIAR
+       ARRANQUE
        ========================================================= */
 
     if (
-      document.readyState === "loading"
+      document.readyState ===
+      "loading"
     ) {
 
       document.addEventListener(
@@ -975,3 +959,4 @@
 
 </body>
 </html>
+```
